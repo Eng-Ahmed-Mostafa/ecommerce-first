@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Brand;
+use App\Models\Category;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -43,7 +44,7 @@ class AdminController extends Controller
             'image' => $imagePath, // حفظ المسار فقط
         ]);
 
-        return redirect()->route('admin.brands')->with('success', 'Brand added has been successfully!');
+        return redirect()->route('admin.brands')->with('status', 'Brand added has been successfully!');
     }
 
     public function edit_brand($id)
@@ -78,7 +79,7 @@ class AdminController extends Controller
             $brand->update(['image' => $imagePath]);
         }
 
-        return redirect()->route('admin.brands')->with('success', 'Brand Edited has been successfully!');
+        return redirect()->route('admin.brands')->with('status', 'Brand Edited has been successfully!');
     }
 
     public function delete_brand($id)
@@ -89,6 +90,81 @@ class AdminController extends Controller
             Storage::delete('public/'.$brand->image);
         }
         $brand->delete();
-        return redirect()->route('admin.brands')->with('success', 'Brand Deleted has been successfully!');
+        return redirect()->route('admin.brands')->with('status', 'Brand Deleted has been successfully!');
+    }
+
+    public function categories()
+    {
+        $categories = Category::orderBy('id','ASC')->paginate(10);
+        return view('admin.categories',compact('categories'));
+    }
+
+    public function add_category()
+    {
+        return view('admin.category-add');
+    }
+
+    public function store_category(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:categories,slug',
+            'image' => 'required|mimes:png,jpg,jpeg|max:2048'
+        ]);
+
+        $image = $request->file('image');
+        $imageName = Carbon::now()->timestamp . '.' . $image->getClientOriginalExtension();
+        $imagePath = $image->storeAs('categories',$imageName,'public');
+        Category::create([
+            'name' => $request->name,
+            'slug' => $request->slug,
+            'image' => $imagePath
+        ]);
+        return redirect()->route('admin.categories')->with('status','Category added has been successfully');
+    }
+
+    public function edit_category($id)
+    {
+        $category = Category::find($id);
+        return view('admin.category-edit',compact('category'));
+    }
+
+    public function update_category(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'slug' => 'required|unique:categories,slug,'. $request->id,
+            'image' => 'required|mimes:png,jpg,jpeg|max:2048'
+        ]);
+        $category = Category::find($request->id);
+        $category->update([
+            'name' => $request->name,
+            'slug' => $request->slug,
+        ]);
+
+        if($request->hasFile('image'))
+        {
+            if($category->image)
+            {
+                Storage::delete('public/'.$category->image);
+            }
+            $image = $request->file('image');
+            $imageName = Carbon::now()->timestamp . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('categories',$imageName,'public');
+
+            $category->update(['image' => $imagePath]);
+        }
+        return redirect()->route('admin.categories')->with('status','Category updated has been successfully');
+    }
+
+    public function delete_category($id)
+    {
+        $category = Category::find($id);
+        if($category->image)
+        {
+            Storage::delete('public/'. $category->image);
+        }
+        $category->delete();
+        return redirect()->route('admin.categories')->with('status', 'Category Deleted has been successfully!');
     }
 }

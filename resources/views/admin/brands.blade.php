@@ -37,6 +37,9 @@
             </div>
             <div class="wg-table table-all-user">
                 <div class="table-responsive">
+                    @if (Session::has('status'))
+                        <p class="alert alert-success">{{ Session::get('status') }}</p>
+                    @endif
                     <table class="table table-striped table-bordered">
                         <thead>
                             <tr>
@@ -50,10 +53,10 @@
                         <tbody>
                             @foreach ($brands as $brand)
                             <tr>
-                                <td>{{$brand->id}}</td>
+                                <td>{{ $loop->iteration }}</td>
                                 <td class="pname">
                                     <div class="image">
-                                        <img src="{{ asset('storage/' . $brand->image) }}" alt="" class="image">
+                                        <img src="{{ Storage::url($brand->image) }}" alt="" class="image">
                                     </div>
                                     <div class="name">
                                         <a href="#" class="body-title-2">{{$brand->name}}</a>

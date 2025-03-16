@@ -86,19 +86,26 @@
 
 @push('scripts')
 <script>
-    document.getElementById("myFile").addEventListener("change", function(event) {
-        let file = event.target.files[0];
-        if (file) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                let imgPreview = document.getElementById("imgpreview");
-                let previewImg = document.getElementById("previewImg");
+    $(document).ready(function () {
+        // توليد slug تلقائيًا عند إدخال name
+        $("#name").on("input", function () {
+            let name = $(this).val();
+            let slug = name.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, "");
+            $("#slug").val(slug);
+        });
 
-                previewImg.src = e.target.result;
-                imgPreview.style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        }
+        // عرض الصورة المحددة قبل الرفع
+        $("#myFile").on("change", function (event) {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#previewImg").attr("src", e.target.result);
+                    $("#imgpreview").show();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
     });
-    </script>
+</script>
 @endpush
